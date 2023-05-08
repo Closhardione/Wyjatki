@@ -26,20 +26,36 @@ public class Person implements Serializable {
         } catch (NullPointerException e) {}
     }
 
-    public Person(String name, LocalDate birth, LocalDate death, Person parent1, Person parent2) throws IncestException, ParentingAgeException {
+    public Person(String name, LocalDate birth, LocalDate death, Person parent1, Person parent2) throws IncestException, ParentingAgeException, UndefinedPersonReferenceException {
         this(name, birth, death);
         parents[0] = parent1;
         Duration diff = Duration.between(parent1.death,parent1.birth);
         int years = (int)(diff.toDays()/365);
         if(years>15||years<50){
-            throw new ParentingAgeException("Age exeption, age: "+years);
+            throw new ParentingAgeException("Age exception, age: "+years);
+        }
+        if(parent1.death.isBefore(birth)){
+            throw new ParentingAgeException("Parent death exception, parent died in "+parent1.death+" child was born in "+birth );
+        }
+        if(Person.findPerson(parent1.name)==null){
+            throw new UndefinedPersonReferenceException("Parent "+parent1+" is not specified in database.");
         }
         parents[1] = parent2;
-
+        diff = Duration.between(parent2.death,parent2.birth);
+        years = (int)(diff.toDays()/365);
+        if(years>15||years<50){
+            throw new ParentingAgeException("Age exception, age: "+years);
+        }
+        if(parent2.death.isBefore(birth)){
+            throw new ParentingAgeException("Parent death exception, parent died in "+parent2.death+" child was born in "+birth );
+        }
+        if(Person.findPerson(parent2.name)==null){
+            throw new UndefinedPersonReferenceException("Parent "+parent2+" is not specified in database.");
+        }
         checkForIncest();
     }
 
-    public Person(String name, LocalDate birth, Person parent1, Person parent2) throws IncestException {
+    public Person(String name, LocalDate birth, Person parent1, Person parent2) throws IncestException, ParentingAgeException, UndefinedPersonReferenceException {
         this(name, birth, null, parent1, parent2);
     }
 
@@ -66,7 +82,7 @@ public class Person implements Serializable {
         }
     }
     public static List<TemportaryPerson> people = new ArrayList<>();
-    public static Person getPersonFromFile(String path) throws FileNotFoundException, AmbigiousPersonException, IncestException {
+    public static Person getPersonFromFile(String path) throws FileNotFoundException, AmbigiousPersonException, IncestException, ParentingAgeException, UndefinedPersonReferenceException {
         File file = new File(path);
         Scanner scanner = null;
         scanner = new Scanner(file);
@@ -110,7 +126,7 @@ public class Person implements Serializable {
         }
         return null;
     }
-    public static List<Person> checkFamilyConnections(List<String> paths) throws FileNotFoundException, AmbigiousPersonException, IncestException {
+    public static List<Person> checkFamilyConnections(List<String> paths) throws FileNotFoundException, AmbigiousPersonException, IncestException, ParentingAgeException, UndefinedPersonReferenceException {
         List<Person> people = new ArrayList<>();
         for(String path : paths){
             people.add(getPersonFromFile(path));
