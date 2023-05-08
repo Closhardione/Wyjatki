@@ -81,6 +81,8 @@ public class Main {
         } catch (AmbigiousPersonException e) {
             System.out.println(e.conflictPath1);
             System.out.println(e.conflictPath2);
+        } catch (IncestException e) {
+            throw new RuntimeException(e);
         }
         System.out.println(filePerson.toString());
     }

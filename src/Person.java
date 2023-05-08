@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,9 +26,14 @@ public class Person implements Serializable {
         } catch (NullPointerException e) {}
     }
 
-    public Person(String name, LocalDate birth, LocalDate death, Person parent1, Person parent2) throws IncestException {
+    public Person(String name, LocalDate birth, LocalDate death, Person parent1, Person parent2) throws IncestException, ParentingAgeException {
         this(name, birth, death);
         parents[0] = parent1;
+        Duration diff = Duration.between(parent1.death,parent1.birth);
+        int years = (int)(diff.toDays()/365);
+        if(years>15||years<50){
+            throw new ParentingAgeException("Age exeption, age: "+years);
+        }
         parents[1] = parent2;
 
         checkForIncest();
